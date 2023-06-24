@@ -75,7 +75,7 @@ impl PhysicalMonitor {
             .unwrap()
     }
 
-    pub fn get_current_mode(&self) -> &Mode {
+    pub async fn get_current_mode(&self) -> &Mode {
         self.modes
             .iter()
             .find(|mode| {
@@ -95,7 +95,7 @@ impl PhysicalMonitor {
         let proxy = UPowerProxy::new(&connection).await.unwrap();
         let on_battery = proxy.on_battery().await.unwrap();
 
-        let curr_mode = self.get_current_mode();
+        let curr_mode = self.get_current_mode().await;
         let modes = self
             .modes
             .iter()

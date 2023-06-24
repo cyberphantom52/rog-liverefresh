@@ -88,6 +88,15 @@ pub struct State {
     pub properties: HashMap<String, OwnedValue>,
 }
 
+impl State {
+    pub fn get_builtin_physical_monitor(&self) -> &PhysicalMonitor {
+        self.physical_monitors
+            .iter()
+            .find(|pm| pm.is_builtin())
+            .unwrap()
+    }
+}
+
 #[derive(Debug, Type, Serialize, Deserialize)]
 pub struct ApplyConfig {
     pub serial: u32,
