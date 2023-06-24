@@ -102,7 +102,6 @@ impl PhysicalMonitor {
             .filter(|mode| mode.width == curr_mode.width && mode.height == curr_mode.height)
             .collect::<Vec<&Mode>>();
 
-        println!("modes: {:#?}", modes);
         if !on_battery {
             modes.first().unwrap()
         } else {
