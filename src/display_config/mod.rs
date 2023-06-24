@@ -5,7 +5,7 @@ pub mod display_config;
 use serde::{Serialize, Deserialize};
 use zbus::zvariant::{Type, OwnedValue};
 use std::collections::HashMap;
-use self::physical_monitor::{PhysicalMonitor, Mode};
+use self::physical_monitor::PhysicalMonitor;
 use self::logical_monitor::{LogicalMonitor, Transform};
 
 #[derive(Debug, Type, Serialize, Deserialize)]
