@@ -10,11 +10,11 @@
 //! section of the zbus documentation.
 //!
 
-use zbus::{dbus_proxy, Result};
-use zbus::zvariant::{OwnedValue};
-use std::collections::HashMap;
-use super::{Method, ApplyLogicalMonitor};
+use super::{ApplyLogicalMonitor, Method};
 use crate::display_config::State;
+use std::collections::HashMap;
+use zbus::zvariant::OwnedValue;
+use zbus::{dbus_proxy, Result};
 
 #[dbus_proxy(
     interface = "org.gnome.Mutter.DisplayConfig",

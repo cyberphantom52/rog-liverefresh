@@ -1,9 +1,9 @@
 mod display_config;
 
-use zbus::{Connection, Result, dbus_proxy};
-use zbus::export::futures_util::StreamExt;
-use display_config::display_config::DisplayConfigProxy;
 use crate::display_config::ApplyConfig;
+use display_config::display_config::DisplayConfigProxy;
+use zbus::export::futures_util::StreamExt;
+use zbus::{dbus_proxy, Connection, Result};
 
 #[dbus_proxy]
 trait UPower {
@@ -12,7 +12,7 @@ trait UPower {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {    
+async fn main() -> Result<()> {
     let conn_sess = Connection::session().await?;
     let display_proxy = DisplayConfigProxy::new(&conn_sess).await?;
 
@@ -23,7 +23,14 @@ async fn main() -> Result<()> {
     while let Some(_) = stream.next().await {
         let state = display_proxy.get_current_state().await?;
         let config = ApplyConfig::from(state).await;
-        display_proxy.apply_monitors_config(config.serial, config.method, config.logical_monitors, config.properties).await?;
+        display_proxy
+            .apply_monitors_config(
+                config.serial,
+                config.method,
+                config.logical_monitors,
+                config.properties,
+            )
+            .await?;
     }
     // println!("{:#?}", state);
     Ok(())

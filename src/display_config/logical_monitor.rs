@@ -18,18 +18,12 @@ pub enum Transform {
 #[derive(Debug, Type, Serialize, Deserialize)]
 pub struct LogicalMonitor {
     pub x: i32,
-    
     pub y: i32,
-    
     pub scale: f64,
-
     pub transform: Transform,
-
     pub primary: bool,
-
     // physical monitors displaying this logical monitor
     pub monitors: Vec<Monitor>,
-
     // possibly other properties
     pub properties: HashMap<String, OwnedValue>,
 }
