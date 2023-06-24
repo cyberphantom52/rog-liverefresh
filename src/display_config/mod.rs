@@ -123,7 +123,7 @@ impl ApplyConfig {
 
         Self {
             serial: state.serial,
-            method: Method::PERSISTENT,
+            method: Method::TEMPORARY,
             logical_monitors: vec![
                 ApplyLogicalMonitor::from(logical_monitor, physical_monitor).await,
             ],
