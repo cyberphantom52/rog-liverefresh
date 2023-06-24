@@ -22,26 +22,6 @@ use crate::display_config::State;
     default_path = "/org/gnome/Mutter/DisplayConfig"
 )]
 trait DisplayConfig {
-    /// ApplyConfiguration method
-    fn apply_configuration(
-        &self,
-        serial: u32,
-        persistent: bool,
-        crtcs: &[(
-            u32,
-            i32,
-            i32,
-            i32,
-            u32,
-            &[u32],
-            HashMap<&str, zbus::zvariant::Value<'_>>,
-        )],
-        outputs: &[(
-            u32,
-            HashMap<&str, zbus::zvariant::Value<'_>>,
-        )],
-    ) -> Result<()>;
-
     /// ApplyMonitorsConfig method
     fn apply_monitors_config(
         &self,
@@ -51,88 +31,6 @@ trait DisplayConfig {
         properties: HashMap<String, OwnedValue>,
     ) -> Result<()>;
 
-    /// ChangeBacklight method
-    fn change_backlight(&self, serial: u32, output: u32, value: i32) -> Result<i32>;
-
-    /// GetCrtcGamma method
-    fn get_crtc_gamma(
-        &self,
-        serial: u32,
-        crtc: u32,
-    ) -> Result<(Vec<u16>, Vec<u16>, Vec<u16>)>;
-
     /// GetCurrentState method
     fn get_current_state(&self) -> Result<State>;
-
-    /// GetResources method
-    fn get_resources(
-        &self,
-    ) -> Result<(
-        u32,
-        Vec<(
-            u32,
-            i64,
-            i32,
-            i32,
-            i32,
-            i32,
-            i32,
-            u32,
-            Vec<u32>,
-            HashMap<String, OwnedValue>,
-        )>,
-        Vec<(
-            u32,
-            i64,
-            i32,
-            Vec<u32>,
-            String,
-            Vec<u32>,
-            Vec<u32>,
-            HashMap<String, OwnedValue>,
-        )>,
-        Vec<(u32, i64, u32, u32, f64, u32)>,
-        i32,
-        i32,
-    )>;
-
-    /// SetCrtcGamma method
-    fn set_crtc_gamma(
-        &self,
-        serial: u32,
-        crtc: u32,
-        red: &[u16],
-        green: &[u16],
-        blue: &[u16],
-    ) -> Result<()>;
-
-    /// SetOutputCTM method
-    #[dbus_proxy(name = "SetOutputCTM")]
-    fn set_output_ctm(
-        &self,
-        serial: u32,
-        output: u32,
-        ctm: &(u64, u64, u64, u64, u64, u64, u64, u64, u64),
-    ) -> Result<()>;
-
-    /// MonitorsChanged signal
-    #[dbus_proxy(signal)]
-    fn monitors_changed(&self) -> Result<()>;
-
-    /// ApplyMonitorsConfigAllowed property
-    #[dbus_proxy(property)]
-    fn apply_monitors_config_allowed(&self) -> Result<bool>;
-
-    /// NightLightSupported property
-    #[dbus_proxy(property)]
-    fn night_light_supported(&self) -> Result<bool>;
-
-    /// PanelOrientationManaged property
-    #[dbus_proxy(property)]
-    fn panel_orientation_managed(&self) -> Result<bool>;
-
-    /// PowerSaveMode property
-    #[dbus_proxy(property)]
-    fn power_save_mode(&self) -> Result<i32>;
-    fn set_power_save_mode(&self, value: i32) -> Result<()>;
 }
