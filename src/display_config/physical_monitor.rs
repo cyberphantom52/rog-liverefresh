@@ -88,25 +88,23 @@ impl PhysicalMonitor {
             .unwrap()
     }
 
-    // Find the lowest refresh rate mode if highest refresh rate mode is set
-    // else find the highest refresh rate mode
     pub async fn get_alternate_mode(&self) -> &Mode {
         let connection = Connection::system().await.unwrap();
         let proxy = UPowerProxy::new(&connection).await.unwrap();
         let on_battery = proxy.on_battery().await.unwrap();
 
         let curr_mode = self.get_current_mode().await;
-        let modes = self
-            .modes
+        self.modes
             .iter()
             .filter(|mode| mode.width == curr_mode.width && mode.height == curr_mode.height)
-            .collect::<Vec<&Mode>>();
-
-        if !on_battery {
-            modes.first().unwrap()
-        } else {
-            modes.last().unwrap()
-        }
+            .min_by(|a, b| {
+                if on_battery {
+                    a.refresh_rate.partial_cmp(&b.refresh_rate).unwrap()
+                } else {
+                    b.refresh_rate.partial_cmp(&a.refresh_rate).unwrap()
+                }
+            })
+            .unwrap()
     }
 
     pub fn get_connector(&self) -> String {
