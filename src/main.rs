@@ -5,7 +5,7 @@ use display_config::display_config::DisplayConfigProxy;
 use zbus::export::futures_util::StreamExt;
 use zbus::{dbus_proxy, Connection, Result};
 
-#[dbus_proxy]
+#[dbus_proxy(assume_defaults = true)]
 trait UPower {
     #[dbus_proxy(property)]
     fn on_battery(&self) -> zbus::Result<bool>;
