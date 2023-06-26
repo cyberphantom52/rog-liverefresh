@@ -24,7 +24,7 @@ trait ScreenSaver {
 
 async fn update_display_config(proxy: &DisplayConfigProxy<'_>, on_battery: bool) -> Result<()> {
     let state = proxy.get_current_state().await?;
-    let builtin_pm = state.get_builtin_physical_monitor();
+    let builtin_pm = state.get_builtin_physical_monitor().unwrap();
     let current_mode = builtin_pm.get_current_mode().id.clone();
     let new_mode = builtin_pm.get_alternate_mode(on_battery).id.clone();
 

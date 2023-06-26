@@ -86,11 +86,20 @@ pub struct State {
 }
 
 impl State {
-    pub fn get_builtin_physical_monitor(&self) -> &PhysicalMonitor {
-        self.physical_monitors
+    pub fn get_builtin_physical_monitor(&self) -> Option<&PhysicalMonitor> {
+        self.physical_monitors.iter().find(|pm| pm.is_builtin())
+    }
+
+    pub fn get_logical_monitor(&self, connector: &str) -> Option<&LogicalMonitor> {
+        self.logical_monitors
             .iter()
-            .find(|pm| pm.is_builtin())
-            .unwrap()
+            .find(|lm| {
+                lm.monitors
+                    .iter()
+                    .find(|monitor| monitor.connector == connector)
+                    .is_some()
+            })
+            .map(|lm| lm)
     }
 }
 
@@ -111,22 +120,11 @@ pub struct ApplyConfig {
 impl ApplyConfig {
     pub fn from(state: State, new_mode_id: String) -> Self {
         let connector = state
-            .physical_monitors
-            .iter()
-            .find(|pm| pm.is_builtin())
+            .get_builtin_physical_monitor()
             .unwrap()
             .get_connector();
 
-        let logical_monitor = state
-            .logical_monitors
-            .iter()
-            .find(|lm| {
-                lm.monitors
-                    .iter()
-                    .find(|monitor| monitor.connector == connector)
-                    .is_some()
-            })
-            .unwrap();
+        let logical_monitor = state.get_logical_monitor(&connector).unwrap();
 
         Self {
             serial: state.serial,
