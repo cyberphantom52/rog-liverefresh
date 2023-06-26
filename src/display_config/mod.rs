@@ -37,10 +37,7 @@ pub struct ApplyLogicalMonitor {
 }
 
 impl ApplyLogicalMonitor {
-    pub async fn from(
-        logical_monitor: &LogicalMonitor,
-        physical_monitor: &PhysicalMonitor,
-    ) -> Self {
+    pub async fn from(logical_monitor: &LogicalMonitor, connector: String, new_mode_id: String) -> Self {
         Self {
             x: logical_monitor.x,
             y: logical_monitor.y,
@@ -48,8 +45,8 @@ impl ApplyLogicalMonitor {
             transform: logical_monitor.transform,
             primary: logical_monitor.primary,
             monitors: vec![ApplyMonitor {
-                connector: physical_monitor.get_connector(),
-                mode_id: physical_monitor.get_alternate_mode().await.id.clone(),
+                connector: connector,
+                mode_id: new_mode_id,
                 properties: HashMap::new(),
             }],
         }
@@ -112,12 +109,13 @@ pub struct ApplyConfig {
 }
 
 impl ApplyConfig {
-    pub async fn from(state: State) -> Self {
-        let physical_monitor = state
+    pub async fn from(state: State, new_mode_id: String) -> Self {
+        let connector = state
             .physical_monitors
             .iter()
             .find(|pm| pm.is_builtin())
-            .unwrap();
+            .unwrap()
+            .get_connector();
 
         let logical_monitor = state
             .logical_monitors
@@ -125,7 +123,7 @@ impl ApplyConfig {
             .find(|lm| {
                 lm.monitors
                     .iter()
-                    .find(|monitor| monitor.connector == physical_monitor.get_connector())
+                    .find(|monitor| monitor.connector == connector)
                     .is_some()
             })
             .unwrap();
@@ -133,9 +131,11 @@ impl ApplyConfig {
         Self {
             serial: state.serial,
             method: Method::TEMPORARY,
-            logical_monitors: vec![
-                ApplyLogicalMonitor::from(logical_monitor, physical_monitor).await,
-            ],
+            logical_monitors: vec![ApplyLogicalMonitor::from(
+                logical_monitor,
+                connector,
+                new_mode_id,
+            ).await],
             properties: HashMap::new(),
         }
     }

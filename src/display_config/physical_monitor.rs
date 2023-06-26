@@ -1,11 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use zbus::{
-    zvariant::{OwnedValue, Type},
-    Connection,
-};
-
-use crate::UPowerProxy;
+use zbus::zvariant::{OwnedValue, Type};
 
 #[derive(Debug, Type, Serialize, Deserialize)]
 pub struct Monitor {
@@ -88,11 +83,7 @@ impl PhysicalMonitor {
             .unwrap()
     }
 
-    pub async fn get_alternate_mode(&self) -> &Mode {
-        let connection = Connection::system().await.unwrap();
-        let proxy = UPowerProxy::new(&connection).await.unwrap();
-        let on_battery = proxy.on_battery().await.unwrap();
-
+    pub async fn get_alternate_mode(&self, on_battery: bool) -> &Mode {
         let curr_mode = self.get_current_mode().await;
         self.modes
             .iter()

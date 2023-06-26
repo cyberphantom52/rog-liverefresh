@@ -15,17 +15,17 @@ trait UPower {
     fn lid_is_closed(&self) -> zbus::Result<bool>;
 }
 
-async fn update_display_config(proxy: &DisplayConfigProxy<'_>) -> Result<()> {
+async fn update_display_config(proxy: &DisplayConfigProxy<'_>, on_battery: bool) -> Result<()> {
     let state = proxy.get_current_state().await?;
     let builtin_pm = state.get_builtin_physical_monitor();
     let current_mode = builtin_pm.get_current_mode().await.id.clone();
-    let new_mode = builtin_pm.get_alternate_mode().await.id.clone();
+    let new_mode = builtin_pm.get_alternate_mode(on_battery).await.id.clone();
 
     if current_mode == new_mode {
         return Ok(());
     };
 
-    let config = ApplyConfig::from(state).await;
+    let config = ApplyConfig::from(state, new_mode).await;
     proxy
         .apply_monitors_config(
             config.serial,
@@ -50,8 +50,9 @@ async fn main() -> Result<()> {
 
     try_join(
         async {
-            while let Some(_) = battery_stream.next().await {
-                update_display_config(&display_proxy).await?;
+            while let Some(on_battery) = battery_stream.next().await {
+                let value = on_battery.get().await?;
+                update_display_config(&display_proxy, value).await?;
             }
             Ok::<(), zbus::Error>(())
         },
@@ -61,7 +62,8 @@ async fn main() -> Result<()> {
                 if !value {
                     // Delay the update to give the display time to turn on
                     sleep(Duration::from_secs(1)).await;
-                    update_display_config(&display_proxy).await?;
+                    let on_battery = upower_proxy.on_battery().await?;
+                    update_display_config(&display_proxy, on_battery).await?;
                 }
             }
             Ok(())
