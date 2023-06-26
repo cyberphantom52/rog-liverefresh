@@ -18,14 +18,14 @@ trait UPower {
 async fn update_display_config(proxy: &DisplayConfigProxy<'_>, on_battery: bool) -> Result<()> {
     let state = proxy.get_current_state().await?;
     let builtin_pm = state.get_builtin_physical_monitor();
-    let current_mode = builtin_pm.get_current_mode().await.id.clone();
-    let new_mode = builtin_pm.get_alternate_mode(on_battery).await.id.clone();
+    let current_mode = builtin_pm.get_current_mode().id.clone();
+    let new_mode = builtin_pm.get_alternate_mode(on_battery).id.clone();
 
     if current_mode == new_mode {
         return Ok(());
     };
 
-    let config = ApplyConfig::from(state, new_mode).await;
+    let config = ApplyConfig::from(state, new_mode);
     proxy
         .apply_monitors_config(
             config.serial,

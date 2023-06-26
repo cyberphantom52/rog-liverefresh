@@ -70,7 +70,7 @@ impl PhysicalMonitor {
             .unwrap()
     }
 
-    pub async fn get_current_mode(&self) -> &Mode {
+    pub fn get_current_mode(&self) -> &Mode {
         self.modes
             .iter()
             .find(|mode| {
@@ -83,8 +83,8 @@ impl PhysicalMonitor {
             .unwrap()
     }
 
-    pub async fn get_alternate_mode(&self, on_battery: bool) -> &Mode {
-        let curr_mode = self.get_current_mode().await;
+    pub fn get_alternate_mode(&self, on_battery: bool) -> &Mode {
+        let curr_mode = self.get_current_mode();
         self.modes
             .iter()
             .filter(|mode| mode.width == curr_mode.width && mode.height == curr_mode.height)

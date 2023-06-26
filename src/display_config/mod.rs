@@ -37,7 +37,7 @@ pub struct ApplyLogicalMonitor {
 }
 
 impl ApplyLogicalMonitor {
-    pub async fn from(logical_monitor: &LogicalMonitor, connector: String, new_mode_id: String) -> Self {
+    pub fn from(logical_monitor: &LogicalMonitor, connector: String, new_mode_id: String) -> Self {
         Self {
             x: logical_monitor.x,
             y: logical_monitor.y,
@@ -109,7 +109,7 @@ pub struct ApplyConfig {
 }
 
 impl ApplyConfig {
-    pub async fn from(state: State, new_mode_id: String) -> Self {
+    pub fn from(state: State, new_mode_id: String) -> Self {
         let connector = state
             .physical_monitors
             .iter()
@@ -135,7 +135,7 @@ impl ApplyConfig {
                 logical_monitor,
                 connector,
                 new_mode_id,
-            ).await],
+            )],
             properties: HashMap::new(),
         }
     }
