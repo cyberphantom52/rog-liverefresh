@@ -46,28 +46,29 @@ async fn update_display_config(proxy: &DisplayConfigProxy<'_>, on_battery: bool)
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let conn_sess = Connection::session().await?;
-    let display_proxy = DisplayConfigProxy::new(&conn_sess).await?;
-    let screen_saver_proxy = ScreenSaverProxy::new(&conn_sess).await?;
+    let system_connection = Connection::system().await?;
+    let session_connection = Connection::session().await?;
 
-    let conn_sys = Connection::system().await?;
-    let upower_proxy = UPowerProxy::new(&conn_sys).await?;
+    let display_config_proxy = DisplayConfigProxy::new(&session_connection).await?;
 
-    let mut screen_wakeup_stream = screen_saver_proxy.receive_wake_up_screen().await?;
+    let upower_proxy = UPowerProxy::new(&system_connection).await?;
     let mut battery_stream = upower_proxy.receive_on_battery_changed().await;
+    
+    let screen_saver_proxy = ScreenSaverProxy::new(&session_connection).await?;
+    let mut screen_wakeup_stream = screen_saver_proxy.receive_wake_up_screen().await?;
 
     try_join(
         async {
             while let Some(on_battery) = battery_stream.next().await {
                 let value = on_battery.get().await?;
-                update_display_config(&display_proxy, value).await?;
+                update_display_config(&display_config_proxy, value).await?;
             }
             Ok::<(), zbus::Error>(())
         },
         async {
             while let Some(_) = screen_wakeup_stream.next().await {
                 let on_battery = upower_proxy.on_battery().await?;
-                update_display_config(&display_proxy, on_battery).await?;
+                update_display_config(&display_config_proxy, on_battery).await?;
             }
             Ok(())
         },
