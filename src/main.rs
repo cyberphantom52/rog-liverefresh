@@ -2,7 +2,6 @@ mod display_config;
 
 use crate::display_config::ApplyConfig;
 use display_config::display_config::DisplayConfigProxy;
-use tokio::time::{sleep, Duration};
 use zbus::export::futures_util::{future::try_join, StreamExt};
 use zbus::{dbus_proxy, Connection, Result};
 
@@ -10,9 +9,17 @@ use zbus::{dbus_proxy, Connection, Result};
 trait UPower {
     #[dbus_proxy(property)]
     fn on_battery(&self) -> zbus::Result<bool>;
+}
 
-    #[dbus_proxy(property)]
-    fn lid_is_closed(&self) -> zbus::Result<bool>;
+#[dbus_proxy(
+    interface = "org.gnome.ScreenSaver",
+    default_service = "org.gnome.ScreenSaver",
+    default_path = "/org/gnome/ScreenSaver"
+)]
+trait ScreenSaver {
+    /// WakeUpScreen signal
+    #[dbus_proxy(signal)]
+    fn wake_up_screen(&self) -> zbus::Result<()>;
 }
 
 async fn update_display_config(proxy: &DisplayConfigProxy<'_>, on_battery: bool) -> Result<()> {
@@ -41,11 +48,12 @@ async fn update_display_config(proxy: &DisplayConfigProxy<'_>, on_battery: bool)
 async fn main() -> Result<()> {
     let conn_sess = Connection::session().await?;
     let display_proxy = DisplayConfigProxy::new(&conn_sess).await?;
+    let screen_saver_proxy = ScreenSaverProxy::new(&conn_sess).await?;
 
     let conn_sys = Connection::system().await?;
     let upower_proxy = UPowerProxy::new(&conn_sys).await?;
 
-    let mut lid_stream = upower_proxy.receive_lid_is_closed_changed().await;
+    let mut screen_wakeup_stream = screen_saver_proxy.receive_wake_up_screen().await?;
     let mut battery_stream = upower_proxy.receive_on_battery_changed().await;
 
     try_join(
@@ -57,14 +65,9 @@ async fn main() -> Result<()> {
             Ok::<(), zbus::Error>(())
         },
         async {
-            while let Some(lid_state) = lid_stream.next().await {
-                let value = lid_state.get().await?;
-                if !value {
-                    // Delay the update to give the display time to turn on
-                    sleep(Duration::from_secs(1)).await;
-                    let on_battery = upower_proxy.on_battery().await?;
-                    update_display_config(&display_proxy, on_battery).await?;
-                }
+            while let Some(_) = screen_wakeup_stream.next().await {
+                let on_battery = upower_proxy.on_battery().await?;
+                update_display_config(&display_proxy, on_battery).await?;
             }
             Ok(())
         },
